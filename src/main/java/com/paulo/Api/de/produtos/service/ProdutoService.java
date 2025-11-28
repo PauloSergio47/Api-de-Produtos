@@ -1,5 +1,6 @@
 package com.paulo.Api.de.produtos.service;
 
+import com.paulo.Api.de.produtos.exception.ProdutoNaoEncontradoException;
 import com.paulo.Api.de.produtos.model.Produto;
 import com.paulo.Api.de.produtos.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
@@ -24,15 +25,13 @@ public class ProdutoService {
     }
 
     public Produto obterProdutoPorId(Long id) {
-        return produtoRepo.findById(id).orElse(null);
+        return produtoRepo.findById(id)
+                .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
     }
 
     public Produto atualizarProduto(Long id, Produto produtoAtualizado) {
-        Produto produto = produtoRepo.findById(id).orElse(null);
-
-        if (produto == null) {
-            return null;
-        }
+        Produto produto = produtoRepo.findById(id)
+                .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
 
         produto.setNome(produtoAtualizado.getNome());
         produto.setPreco(produtoAtualizado.getPreco());
@@ -42,14 +41,10 @@ public class ProdutoService {
         return produtoRepo.save(produto);
     }
 
-    public boolean deletarProduto(Long id) {
-        Produto produto = produtoRepo.findById(id).orElse(null);
-
-        if (produto == null) {
-            return false;
-        }
+    public void deletarProduto(Long id) {
+        Produto produto = produtoRepo.findById(id)
+                .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
 
         produtoRepo.delete(produto);
-        return true;
     }
 }
