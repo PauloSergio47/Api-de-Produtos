@@ -1,7 +1,9 @@
 package com.paulo.Api.de.produtos.controller;
 
+import com.paulo.Api.de.produtos.dto.ProdutoResponseDTO;
 import com.paulo.Api.de.produtos.model.Produto;
 import com.paulo.Api.de.produtos.service.ProdutoService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +20,24 @@ public class ProdutoController {
     }
 
     @PostMapping
-    public ResponseEntity<Produto> criarProduto(@RequestBody Produto produto) {
-        Produto criado = produtoService.criarProduto(produto);
-        return ResponseEntity.status(201).body(criado);
+    public ResponseEntity<ProdutoResponseDTO> criarProduto(@RequestBody ProdutoResponseDTO dto) {
+        Produto produto = new Produto();
+        produto.setNome(dto.nome());
+        produto.setPreco(dto.preco());
+        produto.setQuantidade(dto.quantidade());
+        produto.setDescricao(dto.descricao());
+
+        Produto salvo = produtoService.criarProduto(produto);
+
+        ProdutoResponseDTO resposta = new ProdutoResponseDTO(
+                salvo.getId(),
+                salvo.getNome(),
+                salvo.getPreco(),
+                salvo.getQuantidade(),
+                salvo.getDescricao()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     @GetMapping
@@ -29,13 +46,17 @@ public class ProdutoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Produto> obterProdutoPorId(@PathVariable Long id) {
+    public ResponseEntity<ProdutoResponseDTO> obterProdutoPorId(@PathVariable Long id) {
         Produto produto = produtoService.obterProdutoPorId(id);
 
-        if (produto == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(produto);
+        ProdutoResponseDTO resposta = new ProdutoResponseDTO(
+                produto.getId(),
+                produto.getNome(),
+                produto.getPreco(),
+                produto.getQuantidade(),
+                produto.getDescricao()
+        );
+        return ResponseEntity.ok(resposta);
     }
 
     @PutMapping("/{id}")
@@ -51,11 +72,7 @@ public class ProdutoController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarProduto(@PathVariable Long id) {
-        boolean deletou = produtoService.deletarProduto(id);
-
-        if(!deletou) {
-            return ResponseEntity.notFound().build();
-        }
+        produtoService.deletarProduto(id);
         return ResponseEntity.noContent().build();
     }
 }
