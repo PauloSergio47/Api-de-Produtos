@@ -1,8 +1,10 @@
 package com.paulo.Api.de.produtos.controller;
 
+import com.paulo.Api.de.produtos.dto.ProdutoRequestDTO;
 import com.paulo.Api.de.produtos.dto.ProdutoResponseDTO;
 import com.paulo.Api.de.produtos.model.Produto;
 import com.paulo.Api.de.produtos.service.ProdutoService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,54 +22,70 @@ public class ProdutoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProdutoResponseDTO> criarProduto(@RequestBody ProdutoResponseDTO dto) {
-        Produto produto = new Produto();
-        produto.setNome(dto.nome());
-        produto.setPreco(dto.preco());
-        produto.setQuantidade(dto.quantidade());
-        produto.setDescricao(dto.descricao());
+    public ResponseEntity<ProdutoResponseDTO> criarProduto(
+            @Valid @RequestBody ProdutoRequestDTO dto) {
 
-        Produto salvo = produtoService.criarProduto(produto);
+        Produto criado = produtoService.criarProduto(dto);
 
-        ProdutoResponseDTO resposta = new ProdutoResponseDTO(
-                salvo.getId(),
-                salvo.getNome(),
-                salvo.getPreco(),
-                salvo.getQuantidade(),
-                salvo.getDescricao()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ProdutoResponseDTO(
+                        criado.getId(),
+                        criado.getNome(),
+                        criado.getPreco(),
+                        criado.getQuantidade(),
+                        criado.getDescricao()
+                ));
     }
 
     @GetMapping
-    public ResponseEntity<List<Produto>> listarProdutos() {
-        return ResponseEntity.ok(produtoService.listarProdutos());
+    public ResponseEntity<List<ProdutoResponseDTO>> listarProdutos() {
+
+        List<ProdutoResponseDTO> lista = produtoService.listarProdutos()
+                .stream()
+                .map(p -> new ProdutoResponseDTO(
+                        p.getId(),
+                        p.getNome(),
+                        p.getPreco(),
+                        p.getQuantidade(),
+                        p.getDescricao()))
+                .toList();
+
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> obterProdutoPorId(@PathVariable Long id) {
+
         Produto produto = produtoService.obterProdutoPorId(id);
 
-        ProdutoResponseDTO resposta = new ProdutoResponseDTO(
+        ProdutoResponseDTO dto = new ProdutoResponseDTO(
                 produto.getId(),
                 produto.getNome(),
                 produto.getPreco(),
                 produto.getQuantidade(),
                 produto.getDescricao()
         );
-        return ResponseEntity.ok(resposta);
+
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Produto> atualizarProduto(@PathVariable Long id, @RequestBody Produto produto) {
-        Produto atualizarProduto = produtoService.atualizarProduto(id, produto);
+    public ResponseEntity<ProdutoResponseDTO> atualizarProduto(
+            @PathVariable Long id,
+            @Valid @RequestBody ProdutoRequestDTO dto) {
 
-        if (atualizarProduto == null) {
-            return ResponseEntity.notFound().build();
-        }
+        Produto atualizado = produtoService.atualizarProduto(id, dto);
 
-        return ResponseEntity.ok(atualizarProduto);
+        ProdutoResponseDTO resposta = new ProdutoResponseDTO(
+                atualizado.getId(),
+                atualizado.getNome(),
+                atualizado.getPreco(),
+                atualizado.getQuantidade(),
+                atualizado.getDescricao()
+        );
+
+        return ResponseEntity.ok(resposta);
     }
 
     @DeleteMapping("/{id}")

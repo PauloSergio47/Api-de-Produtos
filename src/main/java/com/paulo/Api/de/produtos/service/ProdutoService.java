@@ -1,8 +1,10 @@
 package com.paulo.Api.de.produtos.service;
 
+import com.paulo.Api.de.produtos.dto.ProdutoRequestDTO;
 import com.paulo.Api.de.produtos.exception.ProdutoNaoEncontradoException;
 import com.paulo.Api.de.produtos.model.Produto;
 import com.paulo.Api.de.produtos.repository.ProdutoRepository;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +18,13 @@ public class ProdutoService {
         this.produtoRepo = produtoRepo;
     }
 
-    public Produto criarProduto(Produto produto) {
+    public Produto criarProduto(ProdutoRequestDTO dto) {
+        Produto produto = new Produto();
+        produto.setNome(dto.nome());
+        produto.setPreco(dto.preco());
+        produto.setQuantidade(dto.quantidade());
+        produto.setDescricao(dto.descricao());
+
         return produtoRepo.save(produto);
     }
 
@@ -29,14 +37,14 @@ public class ProdutoService {
                 .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
     }
 
-    public Produto atualizarProduto(Long id, Produto produtoAtualizado) {
+    public Produto atualizarProduto(Long id, ProdutoRequestDTO dto) {
         Produto produto = produtoRepo.findById(id)
                 .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
 
-        produto.setNome(produtoAtualizado.getNome());
-        produto.setPreco(produtoAtualizado.getPreco());
-        produto.setQuantidade(produtoAtualizado.getQuantidade());
-        produto.setDescricao(produtoAtualizado.getDescricao());
+        produto.setNome(dto.nome());
+        produto.setPreco(dto.preco());
+        produto.setQuantidade(dto.quantidade());
+        produto.setDescricao(dto.descricao());
 
         return produtoRepo.save(produto);
     }
